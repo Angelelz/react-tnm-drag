@@ -1,0 +1,25 @@
+{
+  "name": "react-tnm-drag",
+  "version": "0.1.0",
+  "description": "Package to allow easy drag and drop of React components",
+  "main": "lib/index.js",
+  "types": "lib",
+  "scripts": {
+    "test": "test",
+    "build": "tsc -p ."
+  },
+  "keywords": [
+    "react",
+    "DnD",
+    "drag-and-drop"
+  ],
+  "author": "Angelelz",
+  "license": "MIT",
+  "devDependencies": {
+    "@types/react": "^18.0.21",
+    "typescript": "^4.8.3"
+  },
+  "dependencies": {
+    "react": "^18.2.0"
+  }
+}
