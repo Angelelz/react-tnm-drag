@@ -72,6 +72,8 @@ export function useDrag<
   const elementRef = useRef<HTMLElement>(null);
   const timeout = useRef<number | null>(null);
   const initialOffset = useRef<{ x: number; y: number } | null>(null);
+  const dragStateRef = useRef<typeof dragState>(dragState)
+  dragStateRef.current = dragState;
 
   const workingRef = ref ?? elementRef;
 
@@ -80,6 +82,7 @@ export function useDrag<
       e.dataTransfer.setDragImage(emptyElement.element, 0, 0);
       e.dataTransfer.dropEffect = "copy";
     }
+    console.log("started dragging")
     // if (e.type === "pointerdown") {
     //   document.addEventListener("pointermove", pointerMove);
     //   document.addEventListener("pointerup", removeEvents);
@@ -213,46 +216,57 @@ export function useDrag<
     });
   };
 
-  const onPointerDown = (e: PointerEvent) => {
-    if (e.pointerType === "touch" && !timeout.current) {
+  const pointerDown = (e: PointerEvent) => {
+    if (e.pointerType === "touch" && !timeout.current && dragStateRef.current) {
+      // e.preventDefault()
+      
+      
       timeout.current = setTimeout(() => {
-        // e.preventDefault()
-        // e.preventDefault();
-        (e.target as HTMLElement).releasePointerCapture(e.pointerId);
+        e.preventDefault();
+        // (e.target as HTMLElement).releasePointerCapture(e.pointerId);
         timeout.current = null;
+        console.log("should start dragging here")
+        console.log(dragStateRef.current)
+        console.log(onDragStart)
 
-        onDragStart(e as unknown as React.DragEvent<HTMLElement>);
+        // onDragStart(e as unknown as React.DragEvent<HTMLElement>);
       }, 500);
     }
   };
 
-  const onPointerUp = (e: PointerEvent) => {
+  const pointerUp = (e: PointerEvent) => {
     if (timeout.current) {
-      console.log("clearing timeout on up")
       clearTimeout(timeout.current);
       timeout.current = null;
+      const clickEvent = new MouseEvent('click', { bubbles: true });
+
+      e.target?.dispatchEvent(clickEvent);
       // console.log("test")
       // const clickEvent = new MouseEvent('click', { button: 0});
       // e.target.dispatchEvent(clickEvent);
-    } else if (dragState.isDragging) {
-      onDragEnd(e as unknown as React.DragEvent<HTMLElement>);
-    }
+    } // else if (dragState.isDragging) {
+      // onDragEnd(e as unknown as React.DragEvent<HTMLElement>);
+    // }
   }
 
-  const onTouchStart = (e: React.TouchEvent<HTMLElement>) => {
-    // e.preventDefault();
-  };
-
-  const onPointerMove = (e: PointerEvent) => {
+  const pointerMove = (e: PointerEvent) => {
     if (
-      !dragState.isDragging &&
-      timeout.current &&
-      (e.movementX > 4 || e.movementY > 4)
+      timeout.current
     ) {
-      console.log("clearing timeout on move")
+      console.log("should scroll", e.movementX, e.movementY)
       clearTimeout(timeout.current);
       timeout.current = null;
+      // window.scroll( e.movementX, e.movementY)
+      // document.documentElement.scrollBy(-e.movementX, -e.movementY)
     }
+    if (e.pointerType === "touch" && dragStateRef.current && !dragStateRef.current.isDragging) {
+      console.log("should scroll here")
+      window.scrollBy(-e.movementX * 4, -e.movementY * 4)
+    }
+  };
+
+  const touchStart = (e: TouchEvent) => {
+    e.preventDefault();
   };
 
   const onTouchEnd = (e: React.TouchEvent<HTMLElement>) => {
@@ -278,16 +292,18 @@ export function useDrag<
   useEffect(() => {
     if (workingRef.current) {
       console.log("added event")
-      workingRef.current.addEventListener('pointerdown', onPointerDown, {passive: false})
-      workingRef.current.addEventListener('pointerup', onPointerUp, {passive: false})
-      workingRef.current.addEventListener('pointermove', onPointerMove, {passive: false})
+      workingRef.current.addEventListener('pointerdown', pointerDown, {passive: false})
+      workingRef.current.addEventListener('pointerup', pointerUp, {passive: false})
+      workingRef.current.addEventListener('pointermove', pointerMove, {passive: false})
+      workingRef.current.addEventListener('touchstart', touchStart, {passive: false})
     }
     return () => {
       if (workingRef.current) {
         console.log("removed event")
-        workingRef.current.removeEventListener('pointerdown', onPointerDown);
-        workingRef.current.removeEventListener('pointerup', onPointerUp);
-        workingRef.current.removeEventListener('pointermove', onPointerMove);
+        workingRef.current.removeEventListener('pointerdown', pointerDown);
+        workingRef.current.removeEventListener('pointerup', pointerUp);
+        workingRef.current.removeEventListener('pointermove', pointerMove);
+        workingRef.current.removeEventListener('touchstart', touchStart);
       }
     }
   }, [])
