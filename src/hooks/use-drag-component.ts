@@ -1,4 +1,4 @@
-import { useRef } from "react";
+import { useEffect, useRef } from "react";
 import { emptyElement } from "../helpers/helpers";
 import {
   DispatchDragObjectOne,
@@ -10,7 +10,7 @@ import {
   NoS,
 } from "../types/types";
 
-export function useDragComponent<
+export function useDrag<
   T extends
     | DragStateOne<NoS>
     | DragStateTwo<NoS, NoS>
@@ -43,19 +43,17 @@ export function useDragComponent<
   delayMS: number = 0,
   ref?: React.RefObject<HTMLElement>
 ): {
-  componentDragProps: {
     draggable: boolean;
     onDragStart: (e: React.DragEvent<HTMLElement>) => void;
     onDrag: (e: React.DragEvent<HTMLElement>) => void;
     onDragOver: (e: React.DragEvent<HTMLElement>) => void;
     onDragEnd: (e: React.DragEvent<HTMLElement>) => void;
-    onPointerDown: (e: React.PointerEvent<HTMLElement>) => void;
-    onTouchStart: (e: React.TouchEvent<HTMLElement>) => void;
-    onPointerMoveCapture: (e: React.PointerEvent<HTMLElement>) => void;
-    onTouchEnd: (e: React.TouchEvent<HTMLElement>) => void;
-    onPointerMove: (e: React.PointerEvent<HTMLElement>) => void;
-  };
-  elementRef: React.RefObject<HTMLElement>;
+    // onPointerDown: (e: React.PointerEvent<HTMLElement>) => void;
+    // onTouchStart: (e: React.TouchEvent<HTMLElement>) => void;
+    // onPointerMoveCapture: (e: React.PointerEvent<HTMLElement>) => void;
+    // onTouchEnd: (e: React.TouchEvent<HTMLElement>) => void;
+    // onPointerMove: (e: React.PointerEvent<HTMLElement>) => void;
+    ref: React.RefObject<HTMLElement>;
 } {
   // const controller1 = new AbortController();
   // document.addEventListener("touchstart", (e) => e.preventDefault(), {
@@ -75,22 +73,22 @@ export function useDragComponent<
   const timeout = useRef<number | null>(null);
   const initialOffset = useRef<{ x: number; y: number } | null>(null);
 
+  const workingRef = ref ?? elementRef;
+
   const onDragStart = (e: React.DragEvent<HTMLElement>) => {
     if (e.dataTransfer) {
       e.dataTransfer.setDragImage(emptyElement.element, 0, 0);
       e.dataTransfer.dropEffect = "copy";
     }
-    if (e.type === "pointerdown") {
-      document.addEventListener("pointermove", pointerMove);
-      document.addEventListener("pointerup", removeEvents);
-    }
+    // if (e.type === "pointerdown") {
+    //   document.addEventListener("pointermove", pointerMove);
+    //   document.addEventListener("pointerup", removeEvents);
+    // }
     
     setTimeout(() => {
       const dragEl =
-        ref !== undefined && !!ref.current
-          ? ref.current
-          : !!elementRef.current
-          ? elementRef.current
+        workingRef !== undefined && !!workingRef.current
+          ? workingRef.current
           : (e.target as HTMLElement);
       const boundingRect = dragEl.getBoundingClientRect();
 
@@ -137,21 +135,21 @@ export function useDragComponent<
     }, 0);
   };
 
-  function pointerMove(e: PointerEvent) {
-    const el = document.getElementById("clone");
-    if (initialOffset.current && el) {
-      e.preventDefault();
-      if (e.pageY - initialOffset.current.y > 0)
-        el.style.top = `${e.pageY - initialOffset.current.y}px`;
-      if (e.pageX - initialOffset.current.x > 0)
-        el.style.left = `${e.pageX - initialOffset.current.x}px`;
-    }
-  }
+  // function pointerMove(e: PointerEvent) {
+  //   const el = document.getElementById("clone");
+  //   if (initialOffset.current && el) {
+  //     e.preventDefault();
+  //     if (e.pageY - initialOffset.current.y > 0)
+  //       el.style.top = `${e.pageY - initialOffset.current.y}px`;
+  //     if (e.pageX - initialOffset.current.x > 0)
+  //       el.style.left = `${e.pageX - initialOffset.current.x}px`;
+  //   }
+  // }
 
-  function removeEvents(this: Document) {
-    this.removeEventListener("pointerup", removeEvents);
-    this.removeEventListener("pointermove", pointerMove);
-  }
+  // function removeEvents(this: Document) {
+  //   this.removeEventListener("pointerup", removeEvents);
+  //   this.removeEventListener("pointermove", pointerMove);
+  // }
 
   const onDrag = (e: React.DragEvent<HTMLElement>) => {
     const el = document.getElementById("clone");
@@ -169,10 +167,8 @@ export function useDragComponent<
     if (e.type !== "touchmove") e.preventDefault();
     if (dragState?.isDragging) {
       const dragEl =
-        ref !== undefined && !!ref.current
-          ? ref.current
-          : !!elementRef.current
-          ? elementRef.current
+        workingRef !== undefined && !!workingRef.current
+          ? workingRef.current
           : (e.target as HTMLElement);
       const hoverBoundingRect = dragEl.getBoundingClientRect();
       const hoverMiddleY =
@@ -206,7 +202,7 @@ export function useDragComponent<
   const onDragEnd = (e: React.DragEvent<HTMLElement>) => {
     e.preventDefault();
     initialOffset.current = null;
-    document.removeEventListener("pointermove", pointerMove);
+    // document.removeEventListener("pointermove", pointerMove);
 
     moveItem(dragState as any, identifier);
     setTimeout(() => {
@@ -217,10 +213,10 @@ export function useDragComponent<
     });
   };
 
-  const onPointerDown = (e: React.PointerEvent<HTMLElement>) => {
+  const onPointerDown = (e: PointerEvent) => {
     if (e.pointerType === "touch" && !timeout.current) {
-      e.preventDefault()
       timeout.current = setTimeout(() => {
+        // e.preventDefault()
         // e.preventDefault();
         (e.target as HTMLElement).releasePointerCapture(e.pointerId);
         timeout.current = null;
@@ -230,19 +226,32 @@ export function useDragComponent<
     }
   };
 
+  const onPointerUp = (e: PointerEvent) => {
+    if (timeout.current) {
+      console.log("clearing timeout on up")
+      clearTimeout(timeout.current);
+      timeout.current = null;
+      // console.log("test")
+      // const clickEvent = new MouseEvent('click', { button: 0});
+      // e.target.dispatchEvent(clickEvent);
+    } else if (dragState.isDragging) {
+      onDragEnd(e as unknown as React.DragEvent<HTMLElement>);
+    }
+  }
+
   const onTouchStart = (e: React.TouchEvent<HTMLElement>) => {
     // e.preventDefault();
   };
 
-  const onPointerMoveCapture = (e: React.PointerEvent<HTMLElement>) => {
+  const onPointerMove = (e: PointerEvent) => {
     if (
       !dragState.isDragging &&
       timeout.current &&
       (e.movementX > 4 || e.movementY > 4)
     ) {
+      console.log("clearing timeout on move")
       clearTimeout(timeout.current);
       timeout.current = null;
-      (e.target as HTMLElement).style.touchAction = "auto";
     }
   };
 
@@ -260,25 +269,40 @@ export function useDragComponent<
       (e.target as HTMLElement).style.touchAction = "none";
   };
 
-  const onPointerMove = (e: React.PointerEvent<HTMLElement>) => {
-    if (dragState.isDragging) {
-      onDragOver(e as unknown as React.DragEvent<HTMLElement>);
+  // const onPointerMove = (e: React.PointerEvent<HTMLElement>) => {
+  //   if (dragState.isDragging) {
+  //     onDragOver(e as unknown as React.DragEvent<HTMLElement>);
+  //   }
+  // };
+
+  useEffect(() => {
+    if (workingRef.current) {
+      console.log("added event")
+      workingRef.current.addEventListener('pointerdown', onPointerDown, {passive: false})
+      workingRef.current.addEventListener('pointerup', onPointerUp, {passive: false})
+      workingRef.current.addEventListener('pointermove', onPointerMove, {passive: false})
     }
-  };
+    return () => {
+      if (workingRef.current) {
+        console.log("removed event")
+        workingRef.current.removeEventListener('pointerdown', onPointerDown);
+        workingRef.current.removeEventListener('pointerup', onPointerUp);
+        workingRef.current.removeEventListener('pointermove', onPointerMove);
+      }
+    }
+  }, [])
 
   return {
-    componentDragProps: {
       draggable: true,
       onDragStart,
       onDrag,
       onDragOver,
       onDragEnd,
-      onPointerDown,
-      onTouchStart,
-      onPointerMoveCapture,
-      onTouchEnd,
-      onPointerMove,
-    },
-    elementRef,
+      // onPointerDown,
+      // onTouchStart,
+      // onPointerMoveCapture,
+      // onTouchEnd,
+      // onPointerMove,
+      ref: workingRef
   };
 }
