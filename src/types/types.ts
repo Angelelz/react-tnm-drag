@@ -127,3 +127,20 @@ export type DispatchDragObjectThree<
   | DispatchDragObjectTarget<P>
   | DispatchDragObjectOneContainer<Q>
   | DispatchDragObjectTwoContainers<Q, R, DragActionsTwo | DragActionsThree>;
+
+export interface DragStateLike<T extends NoS> {
+  isDragging: boolean;
+  targetItem: DragObjIdentifierWithPos<T>;
+  element: ElementObject;
+}
+
+export interface EventLike {
+  pageX: number;
+  pageY: number;
+  clientX: number;
+  clientY: number;
+  target: EventTarget | null;
+  nativeEvent?: { offsetX: number; offsetY: number };
+  type: string;
+  preventDefault: () => void;
+}

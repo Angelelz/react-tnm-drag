@@ -158,3 +158,11 @@ export const initialValue = <T extends NoS>(value: T): T => {
 export const isInitialValue = <T extends NoS>(value: T): boolean => {
   return value === initialValue(value);
 };
+
+export const isTouchEv = (e: any): e is React.TouchEvent<HTMLElement> | TouchEvent => {
+  return e.touches !== undefined;
+};
+
+export const isReactEv = (e: any): e is React.DragEvent<HTMLElement> => {
+  return e.nativeEvent !== undefined;
+};

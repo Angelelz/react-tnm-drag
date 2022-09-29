@@ -1,3 +1,4 @@
+/// <reference types="react" />
 import { DispatchDragObjectOne, DispatchDragObjectOneContainer, DispatchDragObjectSource, DispatchDragObjectTarget, DispatchDragObjectThree, DispatchDragObjectTwo, DispatchDragObjectTwoContainers, DragActionsThree, DragActionsTwo, DragState, ElementObject, NoS } from "../types/types";
 export declare function isSourceDispatchObj<P extends NoS, Q extends NoS, R extends NoS>(obj: DispatchDragObjectOne<P> | DispatchDragObjectTwo<P, Q> | DispatchDragObjectThree<P, Q, R>): obj is DispatchDragObjectSource<P>;
 export declare function isTargetDispatchObj<P extends NoS, Q extends NoS, R extends NoS>(obj: DispatchDragObjectOne<P> | DispatchDragObjectTwo<P, Q> | DispatchDragObjectThree<P, Q, R>): obj is DispatchDragObjectTarget<P>;
@@ -9,4 +10,6 @@ export declare const defaultParamFromTypeName: <T extends "string" | "number">(n
 export declare const initialDragState: <P extends "string" | "number", Q extends "string" | "number" | undefined, R extends "string" | "number" | undefined>(l: P, m?: Q | undefined, n?: R | undefined) => DragState<P, Q, R>;
 export declare const initialValue: <T extends NoS>(value: T) => T;
 export declare const isInitialValue: <T extends NoS>(value: T) => boolean;
+export declare const isTouchEv: (e: any) => e is import("react").TouchEvent<HTMLElement> | TouchEvent;
+export declare const isReactEv: (e: any) => e is import("react").DragEvent<HTMLElement>;
 //# sourceMappingURL=helpers.d.ts.map

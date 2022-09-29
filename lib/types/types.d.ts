@@ -71,4 +71,22 @@ export declare type DispatchDragObjectTwoContainers<P extends NoS, Q extends NoS
 export declare type DispatchDragObjectOne<P extends NoS> = DispatchDragObjectDrop | DispatchDragObjectSource<P> | DispatchDragObjectTarget<P>;
 export declare type DispatchDragObjectTwo<P extends NoS, Q extends NoS> = DispatchDragObjectDrop | DispatchDragObjectSource<P> | DispatchDragObjectTarget<P> | DispatchDragObjectOneContainer<Q>;
 export declare type DispatchDragObjectThree<P extends NoS, Q extends NoS, R extends NoS> = DispatchDragObjectDrop | DispatchDragObjectSource<P> | DispatchDragObjectTarget<P> | DispatchDragObjectOneContainer<Q> | DispatchDragObjectTwoContainers<Q, R, DragActionsTwo | DragActionsThree>;
+export interface DragStateLike<T extends NoS> {
+    isDragging: boolean;
+    targetItem: DragObjIdentifierWithPos<T>;
+    element: ElementObject;
+}
+export interface EventLike {
+    pageX: number;
+    pageY: number;
+    clientX: number;
+    clientY: number;
+    target: EventTarget | null;
+    nativeEvent?: {
+        offsetX: number;
+        offsetY: number;
+    };
+    type: string;
+    preventDefault: () => void;
+}
 //# sourceMappingURL=types.d.ts.map
