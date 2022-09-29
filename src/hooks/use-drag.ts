@@ -57,7 +57,9 @@ export function useDrag<
 } {
   const elementRef = useRef<HTMLElement>(null);
   const touchTimeout = useRef<number | null>(null);
+  const scrollTimeout = useRef<number | null>(null);
   const dragStateRef = useRef<typeof dragState>(dragState);
+  const mousePosition = useRef<{ x: number; y: number } | null>(null);
   const pointerId = useRef<number | null>(null);
   dragStateRef.current = dragState;
 
@@ -139,6 +141,16 @@ export function useDrag<
           index
         );
       }
+      mousePosition.current = {
+        x: e.touches[0].clientX,
+        y: e.touches[0].clientY,
+      };
+      if (scrollTimeout.current === null) {
+        scrollTimeout.current = setInterval(
+          () => doScroll(mousePosition.current),
+          150
+        );
+      }
       window.getSelection()?.removeAllRanges();
     }, 500);
   };
@@ -149,11 +161,22 @@ export function useDrag<
     } else if (e.cancelable && dragStateRef.current) {
       e.preventDefault();
       window.getSelection()?.removeAllRanges();
+      mousePosition.current = {
+        x: e.touches[0].clientX,
+        y: e.touches[0].clientY,
+      };
       followPointer(dragStateRef.current, createEventLike(e));
+      clearInterval(scrollTimeout.current ? scrollTimeout.current - 1 : 0); // in Development mode the timeout is created twice
     }
   };
   const onTouchEnd = (e: React.TouchEvent<HTMLElement>) => {
     if (e.cancelable) e.preventDefault();
+    if (scrollTimeout.current) {
+      clearInterval(scrollTimeout.current);
+      clearInterval(scrollTimeout.current - 1); // in Development mode the timeout is created twice
+      scrollTimeout.current = null;
+    }
+
     if (touchTimeout.current) {
       clearTimeout(touchTimeout.current);
       touchTimeout.current = null;
@@ -170,6 +193,7 @@ export function useDrag<
       setTimeout(() => {
         document.getElementById("clone")?.remove();
       }, delayMS);
+      mousePosition.current = null;
       dispatchDragState({ type: "drop" });
     }
   };
@@ -258,7 +282,44 @@ function followPointer(dragState: DragStateLike<NoS>, e: EventLike) {
     if (e.pageX - dragState.element.offsetX > 0)
       el.style.left = `${e.pageX - dragState.element.offsetX}px`;
   }
-  // if (e.clientX > window.innerWidth - 80) window.scrollTo({left: window.screenLeft + 30, top: window.screenTop, behavior: "auto"});
+}
+
+function doScroll(mousePosition: { x: number; y: number } | null) {
+  if (mousePosition) {
+    if (mousePosition.x > document.documentElement.clientWidth - 40) scroller("right");
+    if (mousePosition.x < 40) scroller("left");
+    if (mousePosition.y > document.documentElement.clientHeight - 40) scroller("down");
+    if (mousePosition.y < 40) scroller("up");
+  }
+}
+
+function scroller(direction: "up" | "down" | "left" | "right") {
+  switch (direction) {
+    case "up":
+      if (window.scrollY >= 60) {
+        window.scrollBy({left: 0, top: -60, behavior: "smooth"});
+      }
+      break;
+    case "down":
+      if (
+        window.scrollY + document.documentElement.clientHeight <=
+        document.body.scrollHeight - 60
+      ) {
+        window.scrollBy({left: 0, top: 60, behavior: "smooth"});
+      }
+      break;
+    case "left":
+      if (window.scrollX >= 60) {
+        window.scrollBy({left: -60, top: 0, behavior: "smooth"});
+      }
+      break;
+    case "right":
+      if (window.scrollX + document.documentElement.clientWidth <= document.body.scrollWidth) {
+        // console.log(window.screenLeft + window.innerWidth, document.body.scrollWidth)
+        window.scrollBy({left: 60, top: 0, behavior: "smooth"});
+      }
+      break;
+  }
 }
 
 function startDrag<T extends NoS>(
