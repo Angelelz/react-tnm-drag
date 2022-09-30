@@ -70,13 +70,13 @@ export function isTwoContainersDispatchObj<
   return obj.type === "target2Enter" || obj.type === "target2Leave";
 }
 
-export const emptyElement: ElementObject = {
+export const emptyElement: ElementObject = typeof document !== 'undefined' ? {
   element: document.createElement("span"),
   x: 0,
   y: 0,
   offsetX: 0,
   offsetY: 0,
-};
+} : {} as ElementObject
 
 export const defaultParam = <T extends NoS>(n: T): T => {
   return (typeof n === "number" ? NaN : ("" as string)) as T;

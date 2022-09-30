@@ -98,6 +98,12 @@ export function useDrag<
     moveItem(dragState, identifier);
     setTimeout(() => {
       document.getElementById("clone")?.remove();
+      const elements = document.querySelectorAll("[id='clone']");
+      if (elements.length > 0) {
+        elements.forEach((element) => {
+          element.remove();
+        });
+      }
     }, delayMS);
     dispatchDragState({
       type: "drop",
@@ -192,6 +198,12 @@ export function useDrag<
       moveItem(dragStateRef.current, identifier);
       setTimeout(() => {
         document.getElementById("clone")?.remove();
+        const elements = document.querySelectorAll("[id='clone']");
+        if (elements.length > 0) {
+          elements.forEach((element) => {
+            element.remove();
+          });
+        }
       }, delayMS);
       mousePosition.current = null;
       dispatchDragState({ type: "drop" });
@@ -286,9 +298,11 @@ function followPointer(dragState: DragStateLike<NoS>, e: EventLike) {
 
 function doScroll(mousePosition: { x: number; y: number } | null) {
   if (mousePosition) {
-    if (mousePosition.x > document.documentElement.clientWidth - 40) scroller("right");
+    if (mousePosition.x > document.documentElement.clientWidth - 40)
+      scroller("right");
     if (mousePosition.x < 40) scroller("left");
-    if (mousePosition.y > document.documentElement.clientHeight - 40) scroller("down");
+    if (mousePosition.y > document.documentElement.clientHeight - 40)
+      scroller("down");
     if (mousePosition.y < 40) scroller("up");
   }
 }
@@ -297,7 +311,7 @@ function scroller(direction: "up" | "down" | "left" | "right") {
   switch (direction) {
     case "up":
       if (window.scrollY >= 60) {
-        window.scrollBy({left: 0, top: -60, behavior: "smooth"});
+        window.scrollBy({ left: 0, top: -60, behavior: "smooth" });
       }
       break;
     case "down":
@@ -305,18 +319,21 @@ function scroller(direction: "up" | "down" | "left" | "right") {
         window.scrollY + document.documentElement.clientHeight <=
         document.body.scrollHeight - 60
       ) {
-        window.scrollBy({left: 0, top: 60, behavior: "smooth"});
+        window.scrollBy({ left: 0, top: 60, behavior: "smooth" });
       }
       break;
     case "left":
       if (window.scrollX >= 60) {
-        window.scrollBy({left: -60, top: 0, behavior: "smooth"});
+        window.scrollBy({ left: -60, top: 0, behavior: "smooth" });
       }
       break;
     case "right":
-      if (window.scrollX + document.documentElement.clientWidth <= document.body.scrollWidth) {
+      if (
+        window.scrollX + document.documentElement.clientWidth <=
+        document.body.scrollWidth
+      ) {
         // console.log(window.screenLeft + window.innerWidth, document.body.scrollWidth)
-        window.scrollBy({left: 60, top: 0, behavior: "smooth"});
+        window.scrollBy({ left: 60, top: 0, behavior: "smooth" });
       }
       break;
   }
