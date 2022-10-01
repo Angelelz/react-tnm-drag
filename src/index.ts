@@ -1,4 +1,7 @@
-export { useDrag } from "./hooks/use-drag";
-export { useDragContainer } from "./hooks/use-drag-container";
-export { useDragReducer } from "./hooks/use-drag-reducer";
+import useDragPkg from "./hooks/use-drag";
+import useDragContainerPkg from "./hooks/use-drag-container";
+import useDragReducerPkg from "./hooks/use-drag-reducer";
 
+export const useDrag = useDragPkg
+export const useDragContainer = useDragContainerPkg
+export const useDragReducer = useDragReducerPkg

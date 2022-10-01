@@ -12,7 +12,7 @@ import {
   NoS,
 } from "../types/types";
 
-export function useDrag<
+function useDrag<
   T extends
     | DragStateOne<NoS>
     | DragStateTwo<NoS, NoS>
@@ -241,6 +241,7 @@ export function useDrag<
     ref: workingRef,
   };
 }
+
 function draggingOver<T extends NoS>(
   dragState: DragStateLike<T>,
   workingRef: React.RefObject<HTMLElement>,
@@ -411,3 +412,5 @@ function createEventLike(
   };
   return ev;
 }
+
+export default useDrag;

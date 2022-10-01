@@ -8,7 +8,7 @@ import {
   NoS,
 } from "../types/types";
 
-export function useDragContainer<
+function useDragContainer<
   T extends "oneContainer" | "firstContainer" | "secondContainer",
   P extends NoS,
   Q extends NoS,
@@ -95,3 +95,5 @@ export function useDragContainer<
 
   return { onDragOver, onDragLeave, onPointerMove, onPointerLeave };
 }
+
+export default useDragContainer;

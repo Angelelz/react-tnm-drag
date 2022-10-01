@@ -18,7 +18,7 @@ import {
   isTwoContainersDispatchObj,
 } from "../helpers/helpers";
 
-export function useDragReducer<P extends "number" | "string">(
+function useDragReducer<P extends "number" | "string">(
   sourceType: P
 ): {
   dragState: DragStateOne<P extends "number" ? number : string>;
@@ -26,12 +26,12 @@ export function useDragReducer<P extends "number" | "string">(
     DispatchDragObjectOne<P extends "number" ? number : string>
   >;
 };
-export function useDragReducer<
+function useDragReducer<
   P extends "number" | "string",
   Q extends "number" | "string"
 >(
   sourceType: P,
-  firstTargetType: Q
+  firstContainerType: Q
 ): {
   dragState: DragStateOne<P extends "number" ? number : string>;
   dragDispatch: React.Dispatch<
@@ -41,14 +41,14 @@ export function useDragReducer<
     >
   >;
 };
-export function useDragReducer<
+function useDragReducer<
   P extends "number" | "string",
   Q extends "number" | "string",
   R extends "number" | "string"
 >(
   sourceType: P,
-  firstTargetType: Q,
-  secondTargetType: R
+  firstContainerType: Q,
+  secondContainerType: R
 ): {
   dragState: DragStateThree<
     P extends "number" ? number : string,
@@ -63,11 +63,11 @@ export function useDragReducer<
     >
   >;
 };
-export function useDragReducer<
+function useDragReducer<
   P extends "number" | "string",
   Q extends "number" | "string" | undefined,
   R extends "number" | "string" | undefined
->(sourceType: P, firstTargetType?: Q, secondTargetType?: R) {
+>(sourceType: P, firstContainerType?: Q, secondContainerType?: R) {
   const dragReducer = (
     dragState: DragState<P, Q, R>,
     dragObject:
@@ -126,7 +126,7 @@ export function useDragReducer<
             lastTarget1: draggState.target1,
             lastTargetItem: dragState.targetItem,
             target1: {
-              identifier: defaultParamFromTypeName(firstTargetType!),
+              identifier: defaultParamFromTypeName(firstContainerType!),
               index: NaN,
             },
             targetItem: {
@@ -158,7 +158,7 @@ export function useDragReducer<
             ...dragState,
             lastTarget2: draggState.target2,
             target2: {
-              identifier: defaultParamFromTypeName(secondTargetType!),
+              identifier: defaultParamFromTypeName(secondContainerType!),
               index: NaN,
             },
             targetItem: {
@@ -171,20 +171,22 @@ export function useDragReducer<
     }
     return dragObject.type === "drop"
       ? {
-          ...initialDragState(sourceType, firstTargetType, secondTargetType),
+          ...initialDragState(sourceType, firstContainerType, secondContainerType),
           droppedItem: {
             el: document.getElementById("clone"),
             identifier: dragState.sourceItem.identifier,
           },
         }
-      : initialDragState(sourceType, firstTargetType, secondTargetType);
+      : initialDragState(sourceType, firstContainerType, secondContainerType);
   };
   const [dragState, dragDispatch] = useReducer(
     dragReducer,
-    initialDragState(sourceType, firstTargetType, secondTargetType)
+    initialDragState(sourceType, firstContainerType, secondContainerType)
   );
   return {
     dragState,
     dragDispatch,
   };
 }
+
+export default useDragReducer;
