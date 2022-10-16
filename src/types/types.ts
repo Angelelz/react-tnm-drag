@@ -1,5 +1,7 @@
 export type NoS = number | string;
 
+export type Direction = "vertical" | "horizontal";
+
 export type ElementObject = {
   element: HTMLElement;
   x: number;
@@ -9,55 +11,54 @@ export type ElementObject = {
 };
 
 export type DragObjIdentifier<T extends NoS> = {
-  identifier: T;
-  index: number;
+  identifier: T | null;
+  index: number | null;
 };
 
-export type DragObjIdentifierWithPos<T extends NoS> = {
-  position: "before" | "after" | "";
-} & DragObjIdentifier<T>;
-
-export type DragStateOne<P extends NoS> = {
+export type DragStateSimple<P extends NoS> = {
   sourceItem: DragObjIdentifier<P>;
-  targetItem: DragObjIdentifierWithPos<P>;
-  lastTargetItem: DragObjIdentifierWithPos<P>;
+  targetItem: DragObjIdentifier<P>;
+  lastTargetItem: DragObjIdentifier<P>;
   element: ElementObject;
   isDragging: boolean;
   droppedItem?: { el: HTMLElement; identifier: P };
 };
 
-export interface DragStateTwo<P extends NoS, Q extends NoS>
-  extends DragStateOne<P> {
-  target1: DragObjIdentifier<Q>;
-  lastTarget1: DragObjIdentifier<Q>;
+export interface DragStateOneContainer<P extends NoS, Q extends NoS>
+  extends DragStateSimple<P> {
+  containerNumber: 1;
+  primaryContainer: DragObjIdentifier<Q>;
+  lastPrimaryContainer: DragObjIdentifier<Q>;
 }
 
-export interface DragStateThree<P extends NoS, Q extends NoS, R extends NoS>
-  extends DragStateTwo<P, Q> {
-  target2: DragObjIdentifier<R>;
-  lastTarget2: DragObjIdentifier<R>;
+export interface DragStateTwoContainers<
+  P extends NoS,
+  Q extends NoS,
+  R extends NoS
+> extends Omit<DragStateOneContainer<P, Q>, "containerNumber"> {
+  containerNumber: 2;
+  secondaryContainer: DragObjIdentifier<R>;
+  lastSecondaryContainer: DragObjIdentifier<R>;
 }
 
 export type DragState<
-  P extends "number" | "string",
-  Q extends "number" | "string" | undefined,
-  R extends "number" | "string" | undefined
-> = Q extends "number" | "string"
-  ? R extends "number" | "string"
-    ? DragStateThree<
-        P extends "number" ? number : string,
-        Q extends "number" ? number : string,
-        R extends "number" ? number : string
-      >
-    : DragStateTwo<
-        P extends "number" ? number : string,
-        Q extends "number" ? number : string
-      >
-  : DragStateOne<P extends "number" ? number : string>;
+  T extends DragOptions<any>
+> = T extends DragOptionsOneContainer<any>
+  ? DragStateOneContainer<NoS, NoS>
+  : T extends DragOptionsTwoContainers<any>
+  ? DragStateTwoContainers<NoS, NoS, NoS>
+  : T extends DragOptionsNoContainer<any>
+  ? DragStateSimple<NoS>
+  : never;
 
-export type DragActionsTwo = "target1Enter" | "target1Leave";
+export type DragActionPrimaryContainerEnter = "primaryContainerEnter";
+export type DragActionPrimaryContainerLeave = "primaryContainerLeave";
+export type DragActionSecondaryContainerEnter = "secondaryContainerEnter";
+export type DragActionSecondaryContainerLeave = "secondaryContainerLeave";
 
-export type DragActionsThree = "target2Enter" | "target2Leave";
+export type DragActionsThree =
+  | "secondaryContainerEnter"
+  | "secondaryContainerLeave";
 
 export interface PayloadSource<P extends NoS> {
   identifier: P;
@@ -68,7 +69,7 @@ export interface PayloadSource<P extends NoS> {
 export interface PayloadTarget<P extends NoS> {
   identifier: P;
   index: number;
-  position: "before" | "after";
+  newSourceIndex: number;
 }
 
 export interface PayloadContainer<Q extends NoS> {
@@ -90,47 +91,63 @@ export interface DispatchDragObjectTarget<P extends NoS> {
   payload: PayloadTarget<P>;
 }
 
-export interface DispatchDragObjectOneContainer<P extends NoS> {
-  type: DragActionsTwo;
+export interface DispatchDragObjectPrimaryContainerEnter<P extends NoS> {
+  type: DragActionPrimaryContainerEnter;
   payload: PayloadContainer<P>;
 }
 
-export type DispatchDragObjectTwoContainers<
-  P extends NoS,
-  Q extends NoS,
-  R extends DragActionsTwo | DragActionsThree
-> = R extends DragActionsTwo
-  ? DispatchDragObjectOneContainer<P>
-  : {
-      type: DragActionsThree;
-      payload: PayloadContainer<Q>;
-    };
+export interface DispatchDragObjectSecondaryContainerEnter<P extends NoS> {
+  type: DragActionSecondaryContainerEnter;
+  payload: PayloadContainer<P>;
+}
 
-export type DispatchDragObjectOne<P extends NoS> =
+export interface DispatchDragObjectPrimaryContainerLeave {
+  type: DragActionPrimaryContainerLeave;
+}
+
+export interface DispatchDragObjectSecondaryContainerLeave {
+  type: DragActionSecondaryContainerLeave;
+}
+
+export type DispatchDragObjectPrimaryContainer<P extends NoS> =
+  | DispatchDragObjectPrimaryContainerEnter<P>
+  | DispatchDragObjectPrimaryContainerLeave;
+
+export type DispatchDragObjectSecondaryContainer<P extends NoS> =
+  | DispatchDragObjectSecondaryContainerEnter<P>
+  | DispatchDragObjectSecondaryContainerLeave;
+
+export type DispatchDragObjectSimple<P extends NoS> =
   | DispatchDragObjectDrop
   | DispatchDragObjectSource<P>
   | DispatchDragObjectTarget<P>;
 
-export type DispatchDragObjectTwo<P extends NoS, Q extends NoS> =
-  | DispatchDragObjectDrop
-  | DispatchDragObjectSource<P>
-  | DispatchDragObjectTarget<P>
-  | DispatchDragObjectOneContainer<Q>;
+export type DispatchDragObjectOneContainer<P extends NoS, Q extends NoS> =
+  | DispatchDragObjectSimple<P>
+  | DispatchDragObjectPrimaryContainer<Q>;
 
-export type DispatchDragObjectThree<
+export type DispatchDragObjectTwoContainers<
   P extends NoS,
   Q extends NoS,
   R extends NoS
 > =
-  | DispatchDragObjectDrop
-  | DispatchDragObjectSource<P>
-  | DispatchDragObjectTarget<P>
-  | DispatchDragObjectOneContainer<Q>
-  | DispatchDragObjectTwoContainers<Q, R, DragActionsTwo | DragActionsThree>;
+  | DispatchDragObjectOneContainer<P, Q>
+  | DispatchDragObjectSecondaryContainer<R>;
+
+export type DispatchDragObject<
+  T extends DragOptions<any>
+> = T extends DragOptionsOneContainer<any>
+  ? DispatchDragObjectOneContainer<NoS, NoS>
+  : T extends DragOptionsTwoContainers<any>
+  ? DispatchDragObjectTwoContainers<NoS, NoS, NoS>
+  : T extends DragOptionsNoContainer<any>
+  ? DispatchDragObjectSimple<NoS>
+  : never;
 
 export interface DragStateLike<T extends NoS> {
   isDragging: boolean;
-  targetItem: DragObjIdentifierWithPos<T>;
+  targetItem: DragObjIdentifier<T>;
+  sourceItem: DragObjIdentifier<T>;
   element: ElementObject;
 }
 
@@ -139,8 +156,67 @@ export interface EventLike {
   pageY: number;
   clientX: number;
   clientY: number;
+  screenX: number;
+  screenY: number;
   target: EventTarget | null;
   nativeEvent?: { offsetX: number; offsetY: number };
   type: string;
   preventDefault: () => void;
+}
+
+export type DragOptionsNoContainer<El> = { elementArray: El[]}
+
+export type DragOptionsOneContainer<El> = { containerNumber: 1, elementArray: El[] }
+
+export type DragOptionsTwoContainers<El> = { containerNumber: 2, elementArray: El[] }
+
+export type DragOptions<El> = DragOptionsTwoContainers<El> | DragOptionsOneContainer<El> | DragOptionsNoContainer<El>
+
+export type DragElementHook = <T extends NoS, R extends HTMLElement>(
+  identifier: T,
+  index: number,
+  arrayCallback: ArrayCallback<any>,
+  direction?: Direction,
+  delayMS?: number,
+  ref?: React.RefObject<R>
+) => DragProps<R>;
+
+export type DragProps<R extends HTMLElement> = {
+  draggable: boolean;
+  onDragStart: (e: React.DragEvent<HTMLElement>) => void;
+  onDrag: (e: React.DragEvent<HTMLElement>) => void;
+  onDragOver: (e: React.DragEvent<HTMLElement>) => void;
+  onDragEnd: (e: React.DragEvent<HTMLElement>) => void;
+  onPointerDown: (e: React.PointerEvent<HTMLElement>) => void;
+  onPointerUp: (e: React.PointerEvent<HTMLElement>) => void;
+  onTouchEnd: (e: React.TouchEvent<HTMLElement>) => void;
+  ref: React.RefObject<R>;
+}
+
+export type UseDrag<El> = {
+  dragState: DragState<DragOptions<El>>;
+  dragDispatch: React.Dispatch<DispatchDragObject<DragOptions<El>>>;
+  useDragElement: DragElementHook;
+}
+
+export type ArrayCallback<El> = (elementArray: El[]) => void
+
+export type InternalRef<El> = {
+  touchTimeout: number | null;
+  scrollTimeout: number | null;
+  dragState: DragState<DragOptions<El>>;
+  mousePosition: MousePosition | null;
+  pointerId: number | null;
+  initialStyle: InitialStyle | null;
+}
+
+export type MousePosition = {
+  x: number;
+  y: number;
+}
+
+export type InitialStyle = {
+  transition: string,
+  translate: string,
+  opacity: string,
 }
