@@ -1,0 +1,1 @@
+{"version":3,"file":"use-animation-sync.d.ts","sourceRoot":"","sources":["../../src/hooks/use-animation-sync.ts"],"names":[],"mappings":";AAEA,OAAO,EAAE,SAAS,EAAE,GAAG,EAAE,MAAM,gBAAgB,CAAC;AAGhD,MAAM,CAAC,OAAO,UAAU,gBAAgB;sBAkBD,MAAM,UAAU,MAAM,aAAa,SAAS,SAAS,MAAM;6CAapC,MAAM;2BAWxB,MAAM,IAAI,SAAS,MAAM;oBAWhC,GAAG,SAAS,MAAM;4BAIV,GAAG,SAAS,MAAM;EAK9D"}

@@ -7,9 +7,9 @@ import {
   emptyElement,
   followPointer,
   createCloneAndStartDrag,
-  animateTranslateBackwards,
 } from "./helpers";
 import {
+  AnimationSync,
   ArrayCallback,
   Direction,
   DispatchDragObject,
@@ -25,10 +25,10 @@ const createDragElementHook = <El>(
   dragState: DragState<DragOptions<El>>,
   dragDispatch: React.Dispatch<DispatchDragObject<DragOptions<El>>>,
   elementArray: El[],
-  animationTimeout: React.MutableRefObject<number | null>
+  animationSync: AnimationSync
 ): DragElementHook => {
   return <T extends NoS, R extends HTMLElement>(
-    identifier: T,
+    id: T,
     index: number,
     arrayCallback: ArrayCallback<El>,
     direction: Direction = "vertical",
@@ -43,11 +43,16 @@ const createDragElementHook = <El>(
       mousePosition: null,
       pointerId: null,
       initialStyle: null,
+      index,
+      id
     });
 
     internalRef.current.dragState = dragState;
+    internalRef.current.index = index;
+    internalRef.current.id = id;
 
     const workingRef = ref ?? elementRef;
+
 
     if (internalRef.current.initialStyle === null && workingRef.current) {
       internalRef.current.initialStyle = {
@@ -59,7 +64,7 @@ const createDragElementHook = <El>(
 
     if (
       dragState.isDragging &&
-      identifier === dragState.sourceItem.identifier &&
+      id === dragState.sourceItem.id &&
       workingRef.current
     ) {
       workingRef.current.style.pointerEvents = "none";
@@ -70,7 +75,7 @@ const createDragElementHook = <El>(
 
     if (
       internalRef.current.initialStyle !== null &&
-      identifier !== dragState.targetItem.identifier
+      id !== dragState.targetItem.id
     ) {
       workingRef.current!.style.transition =
         internalRef.current.initialStyle.transition;
@@ -81,7 +86,7 @@ const createDragElementHook = <El>(
       !dragState.isDragging &&
       workingRef.current &&
       dragState.droppedItem &&
-      dragState.droppedItem.identifier === identifier
+      dragState.droppedItem.id === id
     ) {
       workingRef.current!.style.opacity = "0";
       setTimeout(() => {
@@ -91,6 +96,8 @@ const createDragElementHook = <El>(
     }
 
     const onDragStart = (e: React.DragEvent<HTMLElement>) => {
+      // internalRef.current.index = index
+      // console.log(internalRef.current.index)
       if (e.dataTransfer) {
         e.dataTransfer.setDragImage(emptyElement.element, 0, 0);
         e.dataTransfer.dropEffect = "copy";
@@ -102,7 +109,7 @@ const createDragElementHook = <El>(
           e,
           direction,
           dragDispatch,
-          identifier,
+          id,
           index
         );
       }, 0);
@@ -119,19 +126,19 @@ const createDragElementHook = <El>(
         workingRef,
         e,
         direction,
-        identifier,
         dragDispatch,
-        index,
         arrayCallback,
         elementArray,
         internalRef.current,
-        animationTimeout
+        delayMS/2,
+        animationSync,
+        id,
+        index,
       );
     };
 
     const onDragEnd = (e: React.DragEvent<HTMLElement>) => {
       e.preventDefault();
-      // rearrangeCallback(dragState, identifier);
       removeAndAnimateClone(delayMS, workingRef);
       dragDispatch({
         type: "drop",
@@ -140,6 +147,8 @@ const createDragElementHook = <El>(
 
     const onPointerDown = (e: React.PointerEvent<HTMLElement>) => {
       internalRef.current.pointerId = e.pointerId;
+      // internalRef.current.index = index;
+      // console.log(internalRef.current.index)
     };
 
     function onPointerMove(e: PointerEvent) {
@@ -147,18 +156,18 @@ const createDragElementHook = <El>(
         internalRef.current.dragState &&
         internalRef.current.dragState.isDragging
       ) {
+        // console.log({id, index, currentIndex: internalRef.current.index})
         draggingOver(
           internalRef.current.dragState,
           workingRef,
           createEventLike(e),
           direction,
-          identifier,
           dragDispatch,
-          index,
           arrayCallback,
           elementArray,
           internalRef.current,
-          animationTimeout
+          delayMS/2,
+          animationSync
         );
       }
     }
@@ -184,8 +193,8 @@ const createDragElementHook = <El>(
             createEventLike(e),
             direction,
             dragDispatch,
-            identifier,
-            index
+            id,
+            internalRef.current.index!
           );
         }
         internalRef.current.mousePosition = {
@@ -220,6 +229,7 @@ const createDragElementHook = <El>(
         ); // in Development mode the timeout is created twice
       }
     };
+
     const onTouchEnd = (e: React.TouchEvent<HTMLElement>) => {
       if (e.cancelable) e.preventDefault();
       if (internalRef.current.scrollTimeout) {
@@ -250,7 +260,10 @@ const createDragElementHook = <El>(
       }
     };
 
+    
+
     useEffect(() => {
+      const unRegister = animationSync.Register(index, workingRef)
       if (workingRef.current) {
         workingRef.current.addEventListener("pointermove", onPointerMove);
         workingRef.current.addEventListener("touchstart", onTouchStart, {
@@ -261,13 +274,14 @@ const createDragElementHook = <El>(
         });
       }
       return () => {
+        unRegister()
         if (workingRef.current) {
           workingRef.current.removeEventListener("pointermove", onPointerMove);
           workingRef.current.removeEventListener("touchstart", onTouchStart);
           workingRef.current.removeEventListener("touchmove", onTouchMove);
         }
       };
-    }, []);
+    });
 
     return {
       draggable: true,

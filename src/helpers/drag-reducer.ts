@@ -26,7 +26,7 @@ const dragReducer = <El>(options: DragOptions<El>) => {
         ...dragState,
         droppedItem: undefined,
         sourceItem: {
-          identifier: dragObject.payload.identifier,
+          id: dragObject.payload.id,
           index: dragObject.payload.index,
         },
         element: dragObject.payload.element,
@@ -37,12 +37,12 @@ const dragReducer = <El>(options: DragOptions<El>) => {
       return {
         ...dragState,
         sourceItem: {
-          identifier: dragState.sourceItem.identifier,
+          id: dragState.sourceItem.id,
           index: dragObject.payload.newSourceIndex
         },
         lastTargetItem: dragState.targetItem,
         targetItem: {
-          identifier: dragObject.payload.identifier,
+          id: dragObject.payload.id,
           index: dragObject.payload.index,
         },
       };
@@ -55,7 +55,7 @@ const dragReducer = <El>(options: DragOptions<El>) => {
             ...dragState,
             lastPrimaryContainer: draggState.primaryContainer,
             primaryContainer: {
-              identifier: dragObject.payload.identifier,
+              id: dragObject.payload.id,
               index: dragObject.payload.index,
             },
           };
@@ -65,11 +65,11 @@ const dragReducer = <El>(options: DragOptions<El>) => {
             lastPrimaryContainer: draggState.primaryContainer,
             lastTargetItem: dragState.targetItem,
             primaryContainer: {
-              identifier: null,
+              id: null,
               index: null,
             },
             targetItem: {
-              identifier: null,
+              id: null,
               index: null,
               // position: null,
             },
@@ -85,7 +85,7 @@ const dragReducer = <El>(options: DragOptions<El>) => {
                 ...dragState,
                 lastSecondaryContainer: draggState.secondaryContainer,
                 secondaryContainer: {
-                  identifier: dragObject.payload.identifier,
+                  id: dragObject.payload.id,
                   index: dragObject.payload.index,
                 },
               }
@@ -96,13 +96,12 @@ const dragReducer = <El>(options: DragOptions<El>) => {
                 ...dragState,
                 lastSecondaryContainer: draggState.secondaryContainer,
                 secondaryContainer: {
-                  identifier: null,
+                  id: null,
                   index: null,
                 },
                 targetItem: {
-                  identifier: null,
+                  id: null,
                   index: null,
-                  // position: null,
                 },
               }
             : initialDragState(options);
@@ -113,7 +112,7 @@ const dragReducer = <El>(options: DragOptions<El>) => {
       ...initialDragState(options),
       droppedItem: {
         el: document.getElementById("clone")!,
-        identifier: dragState.sourceItem.identifier!,
+        id: dragState.sourceItem.id!,
       }
     };
   };

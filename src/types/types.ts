@@ -1,3 +1,5 @@
+import useAnimationSync from "../hooks/use-animation-sync";
+
 export type NoS = number | string;
 
 export type Direction = "vertical" | "horizontal";
@@ -11,7 +13,7 @@ export type ElementObject = {
 };
 
 export type DragObjIdentifier<T extends NoS> = {
-  identifier: T | null;
+  id: T | null;
   index: number | null;
 };
 
@@ -21,7 +23,7 @@ export type DragStateSimple<P extends NoS> = {
   lastTargetItem: DragObjIdentifier<P>;
   element: ElementObject;
   isDragging: boolean;
-  droppedItem?: { el: HTMLElement; identifier: P };
+  droppedItem?: { el: HTMLElement; id: P };
 };
 
 export interface DragStateOneContainer<P extends NoS, Q extends NoS>
@@ -61,19 +63,19 @@ export type DragActionsThree =
   | "secondaryContainerLeave";
 
 export interface PayloadSource<P extends NoS> {
-  identifier: P;
+  id: P;
   index: number;
   element: ElementObject;
 }
 
 export interface PayloadTarget<P extends NoS> {
-  identifier: P;
+  id: P;
   index: number;
   newSourceIndex: number;
 }
 
 export interface PayloadContainer<Q extends NoS> {
-  identifier: Q;
+  id: Q;
   index: number;
 }
 
@@ -164,16 +166,16 @@ export interface EventLike {
   preventDefault: () => void;
 }
 
-export type DragOptionsNoContainer<El> = { elementArray: El[]}
+export type DragOptionsNoContainer<El> = { elementArray: El[] }
 
-export type DragOptionsOneContainer<El> = { containerNumber: 1, elementArray: El[] }
+export type DragOptionsOneContainer<El> = DragOptionsNoContainer<El> & { containerNumber: 1 }
 
-export type DragOptionsTwoContainers<El> = { containerNumber: 2, elementArray: El[] }
+export type DragOptionsTwoContainers<El> = DragOptionsNoContainer<El> & { containerNumber: 2 }
 
 export type DragOptions<El> = DragOptionsTwoContainers<El> | DragOptionsOneContainer<El> | DragOptionsNoContainer<El>
 
 export type DragElementHook = <T extends NoS, R extends HTMLElement>(
-  identifier: T,
+  id: T,
   index: number,
   arrayCallback: ArrayCallback<any>,
   direction?: Direction,
@@ -208,6 +210,8 @@ export type InternalRef<El> = {
   mousePosition: MousePosition | null;
   pointerId: number | null;
   initialStyle: InitialStyle | null;
+  index: number;
+  id: NoS
 }
 
 export type MousePosition = {
@@ -220,3 +224,11 @@ export type InitialStyle = {
   translate: string,
   opacity: string,
 }
+
+export type ScheduledState = {
+  timeout: number,
+  sourceIndex: number,
+  targetIndex: number,
+}
+
+export type AnimationSync = ReturnType<typeof useAnimationSync>

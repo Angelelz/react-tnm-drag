@@ -1,17 +1,14 @@
 import React from "react";
 import {
+  AnimationSync,
   ArrayCallback,
   DispatchDragObject,
-  DispatchDragObjectOneContainer,
   DispatchDragObjectPrimaryContainer,
   DispatchDragObjectSecondaryContainer,
   DispatchDragObjectSource,
   DispatchDragObjectTarget,
-  DispatchDragObjectTwoContainers,
-  DragActionsThree,
   DragObjIdentifier,
   DragOptions,
-  DragOptionsNoContainer,
   DragState,
   DragStateLike,
   DragStateOneContainer,
@@ -57,12 +54,6 @@ export function isSecondaryContainerDispatchObj<
   );
 }
 
-export function isDragStateOneContainer(
-  obj: DragState<any>
-): obj is DragStateOneContainer<NoS, NoS> {
-  return "containerNumber" in obj && obj.containerNumber === 1;
-}
-
 export function isDragStateTwoContainers(
   obj: DragState<any>
 ): obj is DragStateTwoContainers<NoS, NoS, NoS> {
@@ -84,7 +75,7 @@ export const initialDragState = (
   options: DragOptions<any>
 ): DragState<typeof options> => {
   const nullItem: DragObjIdentifier<NoS> = {
-    identifier: null,
+    id: null,
     index: null,
   };
   const dragStateSimple: DragStateSimple<NoS> = {
@@ -115,13 +106,13 @@ export const initialDragState = (
   };
 };
 
-export const isTouchEv = (
+const isTouchEv = (
   e: any
 ): e is React.TouchEvent<HTMLElement> | TouchEvent => {
   return e.touches !== undefined;
 };
 
-export const isReactEv = (e: any): e is React.DragEvent<HTMLElement> => {
+const isReactEv = (e: any): e is React.DragEvent<HTMLElement> => {
   return e.nativeEvent !== undefined;
 };
 
@@ -160,40 +151,52 @@ export function draggingOver<T extends NoS, El>(
   workingRef: React.RefObject<HTMLElement>,
   e: EventLike,
   direction: "vertical" | "horizontal",
-  identifier: T,
   dispatchDragState: React.Dispatch<DispatchDragObject<any>>,
-  index: number,
   setArray: ArrayCallback<El>,
   array: El[],
   internalRef: InternalRef<El>,
-  animationTimeout: React.MutableRefObject<number | null>
+  delayMS: number,
+  animationSync: AnimationSync,
+  id?: T,
+  index?: number,
 ) {
-  if (dragState.isDragging) {
-    const mms = 100;
-    const shouldBeLess = dragState.sourceItem.index! < index;
-    if (
-      index !== dragState.sourceItem.index &&
-      animationTimeout.current === null
-    ) {
-      const element = array.splice(dragState.sourceItem.index!, 1)[0];
-      array.splice(index, 0, element);
-      shouldBeLess
-        ? animateTranslateBackwards(workingRef.current!, direction, mms)
-        : animateTranslateForward(workingRef.current!, direction, mms);
-      animationTimeout.current = setTimeout(() => {
-        animationTimeout.current = null;
-        dispatchDragState({
-          type: "overItem",
-          payload: {
-            identifier,
-            index: shouldBeLess ? index - 1 : index + 1,
-            newSourceIndex: index,
-          },
-        });
-        setArray(array);
-        resetStyles(workingRef.current!, internalRef.initialStyle!);
-      }, mms - 20);
-    }
+  
+  const realIndex = index ?? internalRef.index
+  const realId = id ?? internalRef.id
+  if (
+    dragState.isDragging &&
+    dragState.sourceItem.id !== realId &&
+    animationSync.IsDifferentTarget(realId, realIndex)
+  ) {
+    // console.log(internalRef);
+    // animationSync.animatedTarget = { id: realId, index: realIndex };
+    const shouldBeLess = dragState.sourceItem.index! < realIndex;
+    // if (animationSync.timeout) {
+    //   console.log(animationSync.timeout)
+    //   clearTimeout(animationSync.timeout);
+    // }
+    animationSync.SetTarget(realId, realIndex);
+    animationSync.SetTimeout(() => {
+      const workingArray = [...array];
+      const element = workingArray.splice(dragState.sourceItem.index!, 1)[0];
+      workingArray.splice(realIndex, 0, element);
+      setArray(workingArray);
+      dispatchDragState({
+        type: "overItem",
+        payload: {
+          id: realId,
+          index: shouldBeLess ? realIndex - 1 : realIndex + 1,
+          newSourceIndex: realIndex,
+        },
+      });
+      resetStyles(workingRef.current!, internalRef.initialStyle!);
+    }, delayMS * 1.2);
+    animationSync.Animate(
+      dragState.sourceItem.index!,
+      realIndex,
+      direction,
+      delayMS
+    );
   }
 }
 
@@ -221,7 +224,7 @@ export function doScroll(mousePosition: { x: number; y: number } | null) {
   }
 }
 
-export function scroller(direction: "up" | "down" | "left" | "right") {
+function scroller(direction: "up" | "down" | "left" | "right") {
   switch (direction) {
     case "up":
       if (window.scrollY >= 60) {
@@ -257,7 +260,7 @@ export function createCloneAndStartDrag<T extends NoS>(
   e: EventLike,
   direction: "vertical" | "horizontal",
   dispatchDragState: React.Dispatch<DispatchDragObject<any>>,
-  identifier: T,
+  id: T,
   index: number
 ) {
   const dragEl =
@@ -286,8 +289,8 @@ export function createCloneAndStartDrag<T extends NoS>(
   dispatchDragState({
     type: "sourceItem",
     payload: {
-      identifier: identifier,
-      index: index,
+      id,
+      index,
       element: {
         element: clonedEl,
         x: 2 * boundingRect.x - e.clientX + (e.pageX - e.clientX),
@@ -326,33 +329,21 @@ export function createEventLike(
   return ev;
 }
 
-export function animateTranslateForward<R extends HTMLElement>(
+export function animateTranslation<R extends HTMLElement>(
   el: R,
   direction: string,
-  ms: number
+  ms: number,
+  forward: boolean
 ) {
   const translationPixels =
     direction === "vertical"
-      ? `0px ${getTotalHeight(el)}px`
-      : `${getTotalWidth(el)}px`;
+      ? `0px ${forward ? getTotalHeight(el) : -getTotalHeight(el)}px`
+      : `${forward ? getTotalWidth(el) : -getTotalWidth(el)}px`;
   el.style.transition = "translate " + ms / 1000 + "s linear";
   el.style.translate = translationPixels;
 }
 
-export function animateTranslateBackwards<R extends HTMLElement>(
-  el: R,
-  direction: string,
-  ms: number
-) {
-  const translationPixels =
-    direction === "vertical"
-      ? `0px ${-getTotalHeight(el)}px`
-      : `${-getTotalWidth(el)}px`;
-  el.style.transition = "translate " + ms / 1000 + "s linear";
-  el.style.translate = translationPixels;
-}
-
-export function resetStyles<R extends HTMLElement>(
+function resetStyles<R extends HTMLElement>(
   el: R,
   initialStyle: InitialStyle
 ) {
@@ -361,14 +352,14 @@ export function resetStyles<R extends HTMLElement>(
   el.style.opacity = initialStyle.opacity;
 }
 
-export function getTotalHeight<R extends HTMLElement>(el: R): number {
+function getTotalHeight<R extends HTMLElement>(el: R): number {
   const elStyle = window.getComputedStyle(el);
   const marginHeight =
     parseFloat(elStyle.marginTop) + parseFloat(elStyle.marginBottom);
   return el.getBoundingClientRect().height + marginHeight;
 }
 
-export function getTotalWidth<R extends HTMLElement>(el: R): number {
+function getTotalWidth<R extends HTMLElement>(el: R): number {
   const elStyle = window.getComputedStyle(el);
   const marginWidth =
     parseFloat(elStyle.marginLeft) + parseFloat(elStyle.marginRight);

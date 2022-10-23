@@ -1,4 +1,5 @@
 /// <reference types="react" />
+import useAnimationSync from "../hooks/use-animation-sync";
 export declare type NoS = number | string;
 export declare type Direction = "vertical" | "horizontal";
 export declare type ElementObject = {
@@ -9,7 +10,7 @@ export declare type ElementObject = {
     offsetY: number;
 };
 export declare type DragObjIdentifier<T extends NoS> = {
-    identifier: T | null;
+    id: T | null;
     index: number | null;
 };
 export declare type DragStateSimple<P extends NoS> = {
@@ -20,7 +21,7 @@ export declare type DragStateSimple<P extends NoS> = {
     isDragging: boolean;
     droppedItem?: {
         el: HTMLElement;
-        identifier: P;
+        id: P;
     };
 };
 export interface DragStateOneContainer<P extends NoS, Q extends NoS> extends DragStateSimple<P> {
@@ -40,17 +41,17 @@ export declare type DragActionSecondaryContainerEnter = "secondaryContainerEnter
 export declare type DragActionSecondaryContainerLeave = "secondaryContainerLeave";
 export declare type DragActionsThree = "secondaryContainerEnter" | "secondaryContainerLeave";
 export interface PayloadSource<P extends NoS> {
-    identifier: P;
+    id: P;
     index: number;
     element: ElementObject;
 }
 export interface PayloadTarget<P extends NoS> {
-    identifier: P;
+    id: P;
     index: number;
     newSourceIndex: number;
 }
 export interface PayloadContainer<Q extends NoS> {
-    identifier: Q;
+    id: Q;
     index: number;
 }
 export interface DispatchDragObjectDrop {
@@ -108,16 +109,14 @@ export interface EventLike {
 export declare type DragOptionsNoContainer<El> = {
     elementArray: El[];
 };
-export declare type DragOptionsOneContainer<El> = {
+export declare type DragOptionsOneContainer<El> = DragOptionsNoContainer<El> & {
     containerNumber: 1;
-    elementArray: El[];
 };
-export declare type DragOptionsTwoContainers<El> = {
+export declare type DragOptionsTwoContainers<El> = DragOptionsNoContainer<El> & {
     containerNumber: 2;
-    elementArray: El[];
 };
 export declare type DragOptions<El> = DragOptionsTwoContainers<El> | DragOptionsOneContainer<El> | DragOptionsNoContainer<El>;
-export declare type DragElementHook = <T extends NoS, R extends HTMLElement>(identifier: T, index: number, arrayCallback: ArrayCallback<any>, direction?: Direction, delayMS?: number, ref?: React.RefObject<R>) => DragProps<R>;
+export declare type DragElementHook = <T extends NoS, R extends HTMLElement>(id: T, index: number, arrayCallback: ArrayCallback<any>, direction?: Direction, delayMS?: number, ref?: React.RefObject<R>) => DragProps<R>;
 export declare type DragProps<R extends HTMLElement> = {
     draggable: boolean;
     onDragStart: (e: React.DragEvent<HTMLElement>) => void;
@@ -142,6 +141,8 @@ export declare type InternalRef<El> = {
     mousePosition: MousePosition | null;
     pointerId: number | null;
     initialStyle: InitialStyle | null;
+    index: number;
+    id: NoS;
 };
 export declare type MousePosition = {
     x: number;
@@ -152,4 +153,10 @@ export declare type InitialStyle = {
     translate: string;
     opacity: string;
 };
+export declare type ScheduledState = {
+    timeout: number;
+    sourceIndex: number;
+    targetIndex: number;
+};
+export declare type AnimationSync = ReturnType<typeof useAnimationSync>;
 //# sourceMappingURL=types.d.ts.map
