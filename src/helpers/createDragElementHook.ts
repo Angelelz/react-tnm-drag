@@ -9,7 +9,7 @@ import {
   createCloneAndStartDrag,
 } from "./helpers";
 import {
-  AnimationSync,
+  GlobalDragStore,
   ArrayCallback,
   Direction,
   DispatchDragObject,
@@ -22,10 +22,10 @@ import {
 } from "../types/types";
 
 const createDragElementHook = <El>(
-  dragState: DragState<DragOptions<El>>,
-  dragDispatch: React.Dispatch<DispatchDragObject<DragOptions<El>>>,
+  // dragState: DragState<DragOptions<El>>,
+  // dragDispatch: React.Dispatch<DispatchDragObject<DragOptions<El>>>,
   elementArray: El[],
-  animationSync: AnimationSync
+  GlobalDragStore: GlobalDragStore
 ): DragElementHook => {
   return <T extends NoS, R extends HTMLElement>(
     id: T,
@@ -36,35 +36,40 @@ const createDragElementHook = <El>(
     ref?: React.RefObject<R>
   ): DragProps<R> => {
     const elementRef = useRef<R>(null);
-    const internalRef = useRef<InternalRef<El>>({
+    const internalRef = useRef<InternalRef>({
       touchTimeout: null,
       scrollTimeout: null,
-      dragState: dragState,
       mousePosition: null,
       pointerId: null,
       initialStyle: null,
       index,
-      id
+      id,
     });
 
-    internalRef.current.dragState = dragState;
     internalRef.current.index = index;
     internalRef.current.id = id;
 
     const workingRef = ref ?? elementRef;
 
-
-    if (internalRef.current.initialStyle === null && workingRef.current) {
-      internalRef.current.initialStyle = {
-        transition: workingRef.current.style.transition,
-        translate: workingRef.current.style.translate,
-        opacity: workingRef.current.style.opacity,
-      };
-    }
+    // useEffect(() => {
+    // if (!workingRef.current) {
+    // GlobalDragStore.reRender()
+    // }
+    // }, [])
+    useEffect(() => {
+      // console.log(internalRef.current.initialStyle, workingRef.current);
+      if (internalRef.current.initialStyle === null && workingRef.current) {
+        internalRef.current.initialStyle = {
+          transition: workingRef.current.style.transition,
+          translate: workingRef.current.style.translate,
+          opacity: workingRef.current.style.opacity,
+        };
+      }
+    }, []);
 
     if (
-      dragState.isDragging &&
-      id === dragState.sourceItem.id &&
+      GlobalDragStore.dragState.current.isDragging &&
+      id === GlobalDragStore.dragState.current.sourceItem.id &&
       workingRef.current
     ) {
       workingRef.current.style.pointerEvents = "none";
@@ -75,18 +80,19 @@ const createDragElementHook = <El>(
 
     if (
       internalRef.current.initialStyle !== null &&
-      id !== dragState.targetItem.id
+      id !== GlobalDragStore.dragState.current.targetItem.id
     ) {
       workingRef.current!.style.transition =
         internalRef.current.initialStyle.transition;
       workingRef.current!.style.translate =
         internalRef.current.initialStyle.translate;
     }
+
     if (
-      !dragState.isDragging &&
+      !GlobalDragStore.dragState.current.isDragging &&
       workingRef.current &&
-      dragState.droppedItem &&
-      dragState.droppedItem.id === id
+      GlobalDragStore.dragState.current.droppedItem &&
+      GlobalDragStore.dragState.current.droppedItem.id === id
     ) {
       workingRef.current!.style.opacity = "0";
       setTimeout(() => {
@@ -108,7 +114,7 @@ const createDragElementHook = <El>(
           workingRef,
           e,
           direction,
-          dragDispatch,
+          GlobalDragStore.dragDispatch,
           id,
           index
         );
@@ -116,31 +122,31 @@ const createDragElementHook = <El>(
     };
 
     const onDrag = (e: React.DragEvent<HTMLElement>) => {
-      followPointer(dragState, createEventLike(e));
+      followPointer(GlobalDragStore.dragState.current, createEventLike(e));
     };
 
     const onDragOver = (e: React.DragEvent<HTMLElement>) => {
       if (e.type !== "touchmove") e.preventDefault();
       draggingOver(
-        dragState,
+        GlobalDragStore.dragState.current,
         workingRef,
         e,
         direction,
-        dragDispatch,
+        GlobalDragStore.dragDispatch,
         arrayCallback,
         elementArray,
         internalRef.current,
-        delayMS/2,
-        animationSync,
+        delayMS / 2,
+        GlobalDragStore,
         id,
-        index,
+        index
       );
     };
 
     const onDragEnd = (e: React.DragEvent<HTMLElement>) => {
       e.preventDefault();
       removeAndAnimateClone(delayMS, workingRef);
-      dragDispatch({
+      GlobalDragStore.dragDispatch({
         type: "drop",
       });
     };
@@ -153,21 +159,21 @@ const createDragElementHook = <El>(
 
     function onPointerMove(e: PointerEvent) {
       if (
-        internalRef.current.dragState &&
-        internalRef.current.dragState.isDragging
+        GlobalDragStore.dragState.current &&
+        GlobalDragStore.dragState.current.isDragging
       ) {
         // console.log({id, index, currentIndex: internalRef.current.index})
         draggingOver(
-          internalRef.current.dragState,
+          GlobalDragStore.dragState.current,
           workingRef,
           createEventLike(e),
           direction,
-          dragDispatch,
+          GlobalDragStore.dragDispatch,
           arrayCallback,
           elementArray,
           internalRef.current,
-          delayMS/2,
-          animationSync
+          delayMS / 2,
+          GlobalDragStore
         );
       }
     }
@@ -180,7 +186,7 @@ const createDragElementHook = <El>(
       internalRef.current.touchTimeout = setTimeout(() => {
         internalRef.current.touchTimeout = null;
         if (
-          internalRef.current.dragState &&
+          GlobalDragStore.dragState.current &&
           !!onDragStart &&
           internalRef.current.pointerId
         ) {
@@ -192,7 +198,7 @@ const createDragElementHook = <El>(
             workingRef,
             createEventLike(e),
             direction,
-            dragDispatch,
+            GlobalDragStore.dragDispatch,
             id,
             internalRef.current.index!
           );
@@ -214,14 +220,14 @@ const createDragElementHook = <El>(
       if (internalRef.current.touchTimeout) {
         clearTimeout(internalRef.current.touchTimeout);
         internalRef.current.touchTimeout = null;
-      } else if (e.cancelable && internalRef.current.dragState) {
+      } else if (e.cancelable && GlobalDragStore.dragState.current) {
         e.preventDefault();
         window.getSelection()?.removeAllRanges();
         internalRef.current.mousePosition = {
           x: e.touches[0].clientX,
           y: e.touches[0].clientY,
         };
-        followPointer(internalRef.current.dragState, createEventLike(e));
+        followPointer(GlobalDragStore.dragState.current, createEventLike(e));
         clearInterval(
           internalRef.current.scrollTimeout
             ? internalRef.current.scrollTimeout - 1
@@ -250,20 +256,21 @@ const createDragElementHook = <El>(
         e.target?.dispatchEvent(clickEvent);
       }
       if (
-        internalRef.current.dragState &&
-        internalRef.current.dragState.isDragging
+        GlobalDragStore.dragState.current &&
+        GlobalDragStore.dragState.current.isDragging
       ) {
         // rearrangeCallback(internalRef.current.dragStateRef, identifier);
         removeAndAnimateClone(delayMS, workingRef);
         internalRef.current.mousePosition = null;
-        dragDispatch({ type: "drop" });
+        GlobalDragStore.dragDispatch({ type: "drop" });
       }
     };
 
-    
-
     useEffect(() => {
-      const unRegister = animationSync.Register(index, workingRef)
+      const unRegister = GlobalDragStore.AnimationSync.Register(
+        index,
+        workingRef
+      );
       if (workingRef.current) {
         workingRef.current.addEventListener("pointermove", onPointerMove);
         workingRef.current.addEventListener("touchstart", onTouchStart, {
@@ -274,7 +281,7 @@ const createDragElementHook = <El>(
         });
       }
       return () => {
-        unRegister()
+        unRegister();
         if (workingRef.current) {
           workingRef.current.removeEventListener("pointermove", onPointerMove);
           workingRef.current.removeEventListener("touchstart", onTouchStart);

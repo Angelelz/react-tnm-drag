@@ -5,25 +5,25 @@ import { DragOptions, UseDrag } from "../types/types";
 import createDragElementHook from "../helpers/createDragElementHook";
 import useAnimationSync from "./use-animation-sync";
 
-function useAnotherDrag<El>(options: DragOptions<El>): UseDrag<El> {
-  const [dragState, dragDispatch] = useReducer(
-    dragReducer(options),
-    initialDragState(options)
-  );
+function useAnotherDrag<El>(options: DragOptions<El>) {
+  // const [dragState, dragDispatch] = useReducer(
+  //   dragReducer(options),
+  //   initialDragState(options)
+  // );
   // console.table(options.elementArray)
 
-  const animationSync = useAnimationSync();
+  const animationSync = useAnimationSync(options);
 
   const useDragElement = createDragElementHook(
-    dragState,
-    dragDispatch,
+    // dragState,
+    // dragDispatch,
     options.elementArray,
     animationSync
   );
 
   return {
-    dragState,
-    dragDispatch,
+    dragState: animationSync.dragState.current,
+    dragDispatch: animationSync.dragDispatch,
     useDragElement,
   };
 }

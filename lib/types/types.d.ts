@@ -1,5 +1,6 @@
 /// <reference types="react" />
 import useAnimationSync from "../hooks/use-animation-sync";
+import useAnotherDrag from "../hooks/use-drag";
 export declare type NoS = number | string;
 export declare type Direction = "vertical" | "horizontal";
 export declare type ElementObject = {
@@ -128,16 +129,11 @@ export declare type DragProps<R extends HTMLElement> = {
     onTouchEnd: (e: React.TouchEvent<HTMLElement>) => void;
     ref: React.RefObject<R>;
 };
-export declare type UseDrag<El> = {
-    dragState: DragState<DragOptions<El>>;
-    dragDispatch: React.Dispatch<DispatchDragObject<DragOptions<El>>>;
-    useDragElement: DragElementHook;
-};
+export declare type UseDrag = ReturnType<typeof useAnotherDrag>;
 export declare type ArrayCallback<El> = (elementArray: El[]) => void;
-export declare type InternalRef<El> = {
+export declare type InternalRef = {
     touchTimeout: number | null;
     scrollTimeout: number | null;
-    dragState: DragState<DragOptions<El>>;
     mousePosition: MousePosition | null;
     pointerId: number | null;
     initialStyle: InitialStyle | null;
@@ -158,5 +154,5 @@ export declare type ScheduledState = {
     sourceIndex: number;
     targetIndex: number;
 };
-export declare type AnimationSync = ReturnType<typeof useAnimationSync>;
+export declare type GlobalDragStore = ReturnType<typeof useAnimationSync>;
 //# sourceMappingURL=types.d.ts.map

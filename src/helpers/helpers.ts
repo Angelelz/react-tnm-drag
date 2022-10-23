@@ -1,6 +1,6 @@
 import React from "react";
 import {
-  AnimationSync,
+  GlobalDragStore,
   ArrayCallback,
   DispatchDragObject,
   DispatchDragObjectPrimaryContainer,
@@ -154,9 +154,9 @@ export function draggingOver<T extends NoS, El>(
   dispatchDragState: React.Dispatch<DispatchDragObject<any>>,
   setArray: ArrayCallback<El>,
   array: El[],
-  internalRef: InternalRef<El>,
+  internalRef: InternalRef,
   delayMS: number,
-  animationSync: AnimationSync,
+  animationSync: GlobalDragStore,
   id?: T,
   index?: number,
 ) {
@@ -166,7 +166,7 @@ export function draggingOver<T extends NoS, El>(
   if (
     dragState.isDragging &&
     dragState.sourceItem.id !== realId &&
-    animationSync.IsDifferentTarget(realId, realIndex)
+    animationSync.AnimationSync.IsDifferentTarget(realId, realIndex)
   ) {
     // console.log(internalRef);
     // animationSync.animatedTarget = { id: realId, index: realIndex };
@@ -175,8 +175,8 @@ export function draggingOver<T extends NoS, El>(
     //   console.log(animationSync.timeout)
     //   clearTimeout(animationSync.timeout);
     // }
-    animationSync.SetTarget(realId, realIndex);
-    animationSync.SetTimeout(() => {
+    animationSync.AnimationSync.SetTarget(realId, realIndex);
+    animationSync.AnimationSync.SetTimeout(() => {
       const workingArray = [...array];
       const element = workingArray.splice(dragState.sourceItem.index!, 1)[0];
       workingArray.splice(realIndex, 0, element);
@@ -191,7 +191,7 @@ export function draggingOver<T extends NoS, El>(
       });
       resetStyles(workingRef.current!, internalRef.initialStyle!);
     }, delayMS * 1.2);
-    animationSync.Animate(
+    animationSync.AnimationSync.Animate(
       dragState.sourceItem.index!,
       realIndex,
       direction,

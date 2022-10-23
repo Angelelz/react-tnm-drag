@@ -1,5 +1,5 @@
 import React from "react";
-import { AnimationSync, ArrayCallback, DispatchDragObject, DispatchDragObjectPrimaryContainer, DispatchDragObjectSecondaryContainer, DispatchDragObjectSource, DispatchDragObjectTarget, DragOptions, DragState, DragStateLike, DragStateOneContainer, DragStateSimple, DragStateTwoContainers, ElementObject, EventLike, InternalRef, NoS } from "../types/types";
+import { GlobalDragStore, ArrayCallback, DispatchDragObject, DispatchDragObjectPrimaryContainer, DispatchDragObjectSecondaryContainer, DispatchDragObjectSource, DispatchDragObjectTarget, DragOptions, DragState, DragStateLike, DragStateOneContainer, DragStateSimple, DragStateTwoContainers, ElementObject, EventLike, InternalRef, NoS } from "../types/types";
 export declare function isSourceDispatchObj<P extends NoS>(objA: DispatchDragObject<any>): objA is DispatchDragObjectSource<P>;
 export declare function isTargetDispatchObj<P extends NoS>(obj: DispatchDragObject<any>): obj is DispatchDragObjectTarget<P>;
 export declare function isPrimaryContainerDispatchObj<P extends NoS, Q extends NoS>(obj: DispatchDragObject<any>): obj is DispatchDragObjectPrimaryContainer<Q>;
@@ -8,7 +8,7 @@ export declare function isDragStateTwoContainers(obj: DragState<any>): obj is Dr
 export declare const emptyElement: ElementObject;
 export declare const initialDragState: (options: DragOptions<any>) => DragStateOneContainer<NoS, NoS> | DragStateTwoContainers<NoS, NoS, NoS> | DragStateSimple<NoS>;
 export declare function removeAndAnimateClone(ms: number, ref?: React.RefObject<HTMLElement>): void;
-export declare function draggingOver<T extends NoS, El>(dragState: DragStateLike<T>, workingRef: React.RefObject<HTMLElement>, e: EventLike, direction: "vertical" | "horizontal", dispatchDragState: React.Dispatch<DispatchDragObject<any>>, setArray: ArrayCallback<El>, array: El[], internalRef: InternalRef<El>, delayMS: number, animationSync: AnimationSync, id?: T, index?: number): void;
+export declare function draggingOver<T extends NoS, El>(dragState: DragStateLike<T>, workingRef: React.RefObject<HTMLElement>, e: EventLike, direction: "vertical" | "horizontal", dispatchDragState: React.Dispatch<DispatchDragObject<any>>, setArray: ArrayCallback<El>, array: El[], internalRef: InternalRef, delayMS: number, animationSync: GlobalDragStore, id?: T, index?: number): void;
 export declare function followPointer(dragState: DragStateLike<NoS>, e: EventLike): void;
 export declare function doScroll(mousePosition: {
     x: number;

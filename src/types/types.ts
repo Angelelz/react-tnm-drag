@@ -1,4 +1,5 @@
 import useAnimationSync from "../hooks/use-animation-sync";
+import useAnotherDrag from "../hooks/use-drag";
 
 export type NoS = number | string;
 
@@ -195,18 +196,19 @@ export type DragProps<R extends HTMLElement> = {
   ref: React.RefObject<R>;
 }
 
-export type UseDrag<El> = {
-  dragState: DragState<DragOptions<El>>;
-  dragDispatch: React.Dispatch<DispatchDragObject<DragOptions<El>>>;
-  useDragElement: DragElementHook;
-}
+// export type UseDrag<El> = {
+//   dragState: DragState<DragOptions<El>>;
+//   dragDispatch: React.Dispatch<DispatchDragObject<DragOptions<El>>>;
+//   useDragElement: DragElementHook;
+// }
+
+export type UseDrag = ReturnType<typeof useAnotherDrag>
 
 export type ArrayCallback<El> = (elementArray: El[]) => void
 
-export type InternalRef<El> = {
+export type InternalRef = {
   touchTimeout: number | null;
   scrollTimeout: number | null;
-  dragState: DragState<DragOptions<El>>;
   mousePosition: MousePosition | null;
   pointerId: number | null;
   initialStyle: InitialStyle | null;
@@ -231,4 +233,4 @@ export type ScheduledState = {
   targetIndex: number,
 }
 
-export type AnimationSync = ReturnType<typeof useAnimationSync>
+export type GlobalDragStore = ReturnType<typeof useAnimationSync>
