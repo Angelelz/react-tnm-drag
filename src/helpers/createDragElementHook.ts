@@ -1,6 +1,6 @@
 import React, { useEffect, useRef } from "react";
 import {
-  removeAndAnimateClone,
+  animateAndRemoveClone,
   createEventLike,
   doScroll,
   draggingOver,
@@ -32,7 +32,7 @@ const createDragElementHook = <El>(
     index: number,
     arrayCallback: ArrayCallback<El>,
     direction: Direction = "vertical",
-    delayMS: number = 400,
+    delayMS: number = 500,
     ref?: React.RefObject<R>
   ): DragProps<R> => {
     const elementRef = useRef<R>(null);
@@ -145,10 +145,10 @@ const createDragElementHook = <El>(
 
     const onDragEnd = (e: React.DragEvent<HTMLElement>) => {
       e.preventDefault();
-      removeAndAnimateClone(delayMS, workingRef);
+      // animateAndRemoveClone(delayMS, workingRef);
       GlobalDragStore.dragDispatch({
         type: "drop",
-      });
+      }, delayMS, workingRef);
     };
 
     const onPointerDown = (e: React.PointerEvent<HTMLElement>) => {
@@ -260,9 +260,9 @@ const createDragElementHook = <El>(
         GlobalDragStore.dragState.current.isDragging
       ) {
         // rearrangeCallback(internalRef.current.dragStateRef, identifier);
-        removeAndAnimateClone(delayMS, workingRef);
+        // animateAndRemoveClone(delayMS, workingRef);
         internalRef.current.mousePosition = null;
-        GlobalDragStore.dragDispatch({ type: "drop" });
+        GlobalDragStore.dragDispatch({ type: "drop" }, delayMS, workingRef);
       }
     };
 

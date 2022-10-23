@@ -1,1 +1,1 @@
-{"version":3,"file":"use-drag.d.ts","sourceRoot":"","sources":["../../src/hooks/use-drag.ts"],"names":[],"mappings":"AAGA,OAAO,EAAE,WAAW,EAAW,MAAM,gBAAgB,CAAC;AAItD,iBAAS,cAAc,CAAC,EAAE,EAAE,OAAO,EAAE,WAAW,CAAC,EAAE,CAAC;;;;EAqBnD;AAED,eAAe,cAAc,CAAC"}
+{"version":3,"file":"use-drag.d.ts","sourceRoot":"","sources":["../../src/hooks/use-drag.ts"],"names":[],"mappings":";AAGA,OAAO,EAAE,WAAW,EAAW,MAAM,gBAAgB,CAAC;AAItD,iBAAS,cAAc,CAAC,EAAE,EAAE,OAAO,EAAE,WAAW,CAAC,EAAE,CAAC;;;;EAqBnD;AAED,eAAe,cAAc,CAAC"}

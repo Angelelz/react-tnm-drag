@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import dragReducer from "../helpers/drag-reducer";
-import { animateTranslation, initialDragState } from "../helpers/helpers";
+import { animateAndRemoveClone, animateTranslation, initialDragState } from "../helpers/helpers";
 import {
   Direction,
   DispatchDragObject,
@@ -35,7 +35,7 @@ export default function useAnimationSync<El>(options: DragOptions<El>) {
   
   const reRender = useCallback(() => render(r => !r), [])
 
-  // const RunAfterTimer = new Set<() => void>();
+  const RunAfterTimer = new Set<() => void>();
 
   const DragReducer = useCallback(dragReducer(options), [])
 
@@ -81,12 +81,15 @@ export default function useAnimationSync<El>(options: DragOptions<El>) {
       callback();
       internalState.current.timeout = null;
       internalState.current.animatedTarget = null;
-      // RunAfterTimer.forEach(func => {
-      //   func();
-      //   console.log(RunAfterTimer);
-      //   RunAfterTimer.delete(func);
-      //   console.log(RunAfterTimer);
-      // })
+      setTimeout(() => {
+        RunAfterTimer.forEach(func => {
+          func();
+          console.log(RunAfterTimer);
+          RunAfterTimer.delete(func);
+          console.log(RunAfterTimer);
+        })
+      })
+      
     }, delay);
   }, []);
 
@@ -101,13 +104,11 @@ export default function useAnimationSync<El>(options: DragOptions<El>) {
     );
   }, []);
 
-  // useEffect(() => {
-  //   reRender()
-  // }, [])
-
   const dragDispatch = useCallback(
-    (dragObject: DispatchDragObject<typeof options>) => {
+    (dragObject: DispatchDragObject<typeof options>, delay?: number, ref?: React.RefObject<HTMLElement>) => {
       const callback = () => {
+        if (dragObject.type === "drop")
+          animateAndRemoveClone(delay!, ref)
         internalState.current.dragState.current = DragReducer(
           internalState.current.dragState.current,
           dragObject
@@ -115,12 +116,11 @@ export default function useAnimationSync<El>(options: DragOptions<El>) {
         // console.table(internalState.current.dragState.current)
         reRender();
       }
-      // if (dragObject.type === "drop" && internalState.current.timeout) {
-        
-      //   RunAfterTimer.add(() => {callback})
-      // } else {
+      if (dragObject.type === "drop" && internalState.current.timeout) {
+        RunAfterTimer.add(callback)
+      } else {
         callback();
-      // }
+      }
     },
     []
   );

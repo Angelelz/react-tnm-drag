@@ -116,7 +116,7 @@ const isReactEv = (e: any): e is React.DragEvent<HTMLElement> => {
   return e.nativeEvent !== undefined;
 };
 
-export function removeAndAnimateClone(
+export function animateAndRemoveClone(
   ms: number,
   ref?: React.RefObject<HTMLElement>
 ) {

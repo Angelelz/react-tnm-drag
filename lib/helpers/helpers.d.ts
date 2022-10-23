@@ -7,7 +7,7 @@ export declare function isSecondaryContainerDispatchObj<P extends NoS, Q extends
 export declare function isDragStateTwoContainers(obj: DragState<any>): obj is DragStateTwoContainers<NoS, NoS, NoS>;
 export declare const emptyElement: ElementObject;
 export declare const initialDragState: (options: DragOptions<any>) => DragStateOneContainer<NoS, NoS> | DragStateTwoContainers<NoS, NoS, NoS> | DragStateSimple<NoS>;
-export declare function removeAndAnimateClone(ms: number, ref?: React.RefObject<HTMLElement>): void;
+export declare function animateAndRemoveClone(ms: number, ref?: React.RefObject<HTMLElement>): void;
 export declare function draggingOver<T extends NoS, El>(dragState: DragStateLike<T>, workingRef: React.RefObject<HTMLElement>, e: EventLike, direction: "vertical" | "horizontal", dispatchDragState: React.Dispatch<DispatchDragObject<any>>, setArray: ArrayCallback<El>, array: El[], internalRef: InternalRef, delayMS: number, animationSync: GlobalDragStore, id?: T, index?: number): void;
 export declare function followPointer(dragState: DragStateLike<NoS>, e: EventLike): void;
 export declare function doScroll(mousePosition: {
