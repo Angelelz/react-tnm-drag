@@ -121,6 +121,7 @@ export function removeAndAnimateClone(
   ref?: React.RefObject<HTMLElement>
 ) {
   const el = document.getElementById("clone");
+  console.log(el, ref?.current)
   if (ref && ref.current && el) {
     ref.current.style.transition = `opacity ${ms / 2000}s linear ${ms / 2000}s`;
     ref.current.style.opacity = "";

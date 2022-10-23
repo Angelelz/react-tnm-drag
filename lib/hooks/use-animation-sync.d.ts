@@ -6,5 +6,7 @@ export default function useAnimationSync(): {
     SetTimeout: (callback: () => void, delay: number) => void;
     SetTarget: (id: NoS, index: number) => void;
     IsDifferentTarget: (id: NoS, index: number) => boolean;
+    timeout: number | null;
+    RunAfterTimer: Set<() => void>;
 };
 //# sourceMappingURL=use-animation-sync.d.ts.map

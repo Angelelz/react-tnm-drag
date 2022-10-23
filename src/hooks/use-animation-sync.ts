@@ -20,6 +20,8 @@ export default function useAnimationSync() {
     animatedTarget: null,
     elements: new Set<{index: number, element: React.RefObject<HTMLElement>}>()
   })
+
+  const RunAfterTimer = new Set<() => void>();
   
   const Animate = useCallback((source: number, target: number, direction: Direction, delay: number) => {
     
@@ -53,6 +55,14 @@ export default function useAnimationSync() {
       callback();
       internalState.current.timeout = null;
       internalState.current.animatedTarget = null
+      setTimeout(() => {
+        RunAfterTimer.forEach(func => {
+          func();
+          console.log(RunAfterTimer);
+          RunAfterTimer.delete(func);
+          console.log(RunAfterTimer);
+        })
+      })
     }, delay);
   }, [])
 
@@ -64,5 +74,5 @@ export default function useAnimationSync() {
     return id !== internalState.current.animatedTarget?.id && index !== internalState.current.animatedTarget?.index
   }, [])
 
-  return {Animate, Register, SetTimeout, SetTarget, IsDifferentTarget}
+  return {Animate, Register, SetTimeout, SetTarget, IsDifferentTarget, timeout: internalState.current.timeout, RunAfterTimer}
 }

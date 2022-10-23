@@ -32,7 +32,7 @@ const createDragElementHook = <El>(
     index: number,
     arrayCallback: ArrayCallback<El>,
     direction: Direction = "vertical",
-    delayMS: number = 400,
+    delayMS: number = 1000,
     ref?: React.RefObject<R>
   ): DragProps<R> => {
     const elementRef = useRef<R>(null);
@@ -44,7 +44,7 @@ const createDragElementHook = <El>(
       pointerId: null,
       initialStyle: null,
       index,
-      id
+      id,
     });
 
     internalRef.current.dragState = dragState;
@@ -52,7 +52,6 @@ const createDragElementHook = <El>(
     internalRef.current.id = id;
 
     const workingRef = ref ?? elementRef;
-
 
     if (internalRef.current.initialStyle === null && workingRef.current) {
       internalRef.current.initialStyle = {
@@ -130,16 +129,22 @@ const createDragElementHook = <El>(
         arrayCallback,
         elementArray,
         internalRef.current,
-        delayMS/2,
+        delayMS / 2,
         animationSync,
         id,
-        index,
+        index
       );
     };
 
     const onDragEnd = (e: React.DragEvent<HTMLElement>) => {
       e.preventDefault();
-      removeAndAnimateClone(delayMS, workingRef);
+      if (animationSync.timeout === null)
+        removeAndAnimateClone(delayMS, workingRef);
+      else {
+        animationSync.RunAfterTimer.add(() =>
+          removeAndAnimateClone(delayMS, workingRef)
+        );
+      }
       dragDispatch({
         type: "drop",
       });
@@ -166,7 +171,7 @@ const createDragElementHook = <El>(
           arrayCallback,
           elementArray,
           internalRef.current,
-          delayMS/2,
+          delayMS / 2,
           animationSync
         );
       }
@@ -253,17 +258,20 @@ const createDragElementHook = <El>(
         internalRef.current.dragState &&
         internalRef.current.dragState.isDragging
       ) {
-        // rearrangeCallback(internalRef.current.dragStateRef, identifier);
-        removeAndAnimateClone(delayMS, workingRef);
+        if (animationSync.timeout === null)
+          removeAndAnimateClone(delayMS, workingRef);
+        else {
+          animationSync.RunAfterTimer.add(() =>
+            removeAndAnimateClone(delayMS, workingRef)
+          );
+        }
         internalRef.current.mousePosition = null;
         dragDispatch({ type: "drop" });
       }
     };
 
-    
-
     useEffect(() => {
-      const unRegister = animationSync.Register(index, workingRef)
+      const unRegister = animationSync.Register(index, workingRef);
       if (workingRef.current) {
         workingRef.current.addEventListener("pointermove", onPointerMove);
         workingRef.current.addEventListener("touchstart", onTouchStart, {
@@ -274,7 +282,7 @@ const createDragElementHook = <El>(
         });
       }
       return () => {
-        unRegister()
+        unRegister();
         if (workingRef.current) {
           workingRef.current.removeEventListener("pointermove", onPointerMove);
           workingRef.current.removeEventListener("touchstart", onTouchStart);
