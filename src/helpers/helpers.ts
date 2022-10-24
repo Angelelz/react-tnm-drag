@@ -106,9 +106,7 @@ export const initialDragState = (
   };
 };
 
-const isTouchEv = (
-  e: any
-): e is React.TouchEvent<HTMLElement> | TouchEvent => {
+const isTouchEv = (e: any): e is React.TouchEvent<HTMLElement> | TouchEvent => {
   return e.touches !== undefined;
 };
 
@@ -158,11 +156,10 @@ export function draggingOver<T extends NoS, El>(
   delayMS: number,
   animationSync: GlobalDragStore,
   id?: T,
-  index?: number,
+  index?: number
 ) {
-  
-  const realIndex = index ?? internalRef.index
-  const realId = id ?? internalRef.id
+  const realIndex = index ?? internalRef.index;
+  const realId = id ?? internalRef.id;
   if (
     dragState.isDragging &&
     dragState.sourceItem.id !== realId &&
@@ -343,10 +340,7 @@ export function animateTranslation<R extends HTMLElement>(
   el.style.translate = translationPixels;
 }
 
-function resetStyles<R extends HTMLElement>(
-  el: R,
-  initialStyle: InitialStyle
-) {
+function resetStyles<R extends HTMLElement>(el: R, initialStyle: InitialStyle) {
   el.style.transition = initialStyle.transition;
   el.style.translate = initialStyle.translate;
   el.style.opacity = initialStyle.opacity;

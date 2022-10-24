@@ -1,6 +1,5 @@
 import React, { useEffect, useRef } from "react";
 import {
-  animateAndRemoveClone,
   createEventLike,
   doScroll,
   draggingOver,
@@ -12,18 +11,13 @@ import {
   GlobalDragStore,
   ArrayCallback,
   Direction,
-  DispatchDragObject,
   DragElementHook,
-  DragOptions,
   DragProps,
-  DragState,
   InternalRef,
   NoS,
 } from "../types/types";
 
 const createDragElementHook = <El>(
-  // dragState: DragState<DragOptions<El>>,
-  // dragDispatch: React.Dispatch<DispatchDragObject<DragOptions<El>>>,
   elementArray: El[],
   GlobalDragStore: GlobalDragStore
 ): DragElementHook => {
@@ -51,13 +45,7 @@ const createDragElementHook = <El>(
 
     const workingRef = ref ?? elementRef;
 
-    // useEffect(() => {
-    // if (!workingRef.current) {
-    // GlobalDragStore.reRender()
-    // }
-    // }, [])
     useEffect(() => {
-      // console.log(internalRef.current.initialStyle, workingRef.current);
       if (internalRef.current.initialStyle === null && workingRef.current) {
         internalRef.current.initialStyle = {
           transition: workingRef.current.style.transition,
@@ -102,8 +90,6 @@ const createDragElementHook = <El>(
     }
 
     const onDragStart = (e: React.DragEvent<HTMLElement>) => {
-      // internalRef.current.index = index
-      // console.log(internalRef.current.index)
       if (e.dataTransfer) {
         e.dataTransfer.setDragImage(emptyElement.element, 0, 0);
         e.dataTransfer.dropEffect = "copy";
@@ -145,16 +131,17 @@ const createDragElementHook = <El>(
 
     const onDragEnd = (e: React.DragEvent<HTMLElement>) => {
       e.preventDefault();
-      // animateAndRemoveClone(delayMS, workingRef);
-      GlobalDragStore.dragDispatch({
-        type: "drop",
-      }, delayMS, workingRef);
+      GlobalDragStore.dragDispatch(
+        {
+          type: "drop",
+        },
+        delayMS,
+        workingRef
+      );
     };
 
     const onPointerDown = (e: React.PointerEvent<HTMLElement>) => {
       internalRef.current.pointerId = e.pointerId;
-      // internalRef.current.index = index;
-      // console.log(internalRef.current.index)
     };
 
     function onPointerMove(e: PointerEvent) {
@@ -162,7 +149,6 @@ const createDragElementHook = <El>(
         GlobalDragStore.dragState.current &&
         GlobalDragStore.dragState.current.isDragging
       ) {
-        // console.log({id, index, currentIndex: internalRef.current.index})
         draggingOver(
           GlobalDragStore.dragState.current,
           workingRef,
@@ -259,8 +245,6 @@ const createDragElementHook = <El>(
         GlobalDragStore.dragState.current &&
         GlobalDragStore.dragState.current.isDragging
       ) {
-        // rearrangeCallback(internalRef.current.dragStateRef, identifier);
-        // animateAndRemoveClone(delayMS, workingRef);
         internalRef.current.mousePosition = null;
         GlobalDragStore.dragDispatch({ type: "drop" }, delayMS, workingRef);
       }

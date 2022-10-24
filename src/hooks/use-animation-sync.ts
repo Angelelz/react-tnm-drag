@@ -1,6 +1,10 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useRef, useState } from "react";
 import dragReducer from "../helpers/drag-reducer";
-import { animateAndRemoveClone, animateTranslation, initialDragState } from "../helpers/helpers";
+import {
+  animateAndRemoveClone,
+  animateTranslation,
+  initialDragState,
+} from "../helpers/helpers";
 import {
   Direction,
   DispatchDragObject,
@@ -32,12 +36,12 @@ export default function useAnimationSync<El>(options: DragOptions<El>) {
   });
 
   const [, render] = useState(false);
-  
-  const reRender = useCallback(() => render(r => !r), [])
+
+  const reRender = useCallback(() => render((r) => !r), []);
 
   const RunAfterTimer = new Set<() => void>();
 
-  const DragReducer = useCallback(dragReducer(options), [])
+  const DragReducer = useCallback(dragReducer(options), []);
 
   const Animate = useCallback(
     (source: number, target: number, direction: Direction, delay: number) => {
@@ -82,14 +86,11 @@ export default function useAnimationSync<El>(options: DragOptions<El>) {
       internalState.current.timeout = null;
       internalState.current.animatedTarget = null;
       setTimeout(() => {
-        RunAfterTimer.forEach(func => {
+        RunAfterTimer.forEach((func) => {
           func();
-          console.log(RunAfterTimer);
           RunAfterTimer.delete(func);
-          console.log(RunAfterTimer);
-        })
-      })
-      
+        });
+      });
     }, delay);
   }, []);
 
@@ -105,19 +106,21 @@ export default function useAnimationSync<El>(options: DragOptions<El>) {
   }, []);
 
   const dragDispatch = useCallback(
-    (dragObject: DispatchDragObject<typeof options>, delay?: number, ref?: React.RefObject<HTMLElement>) => {
+    (
+      dragObject: DispatchDragObject<typeof options>,
+      delay?: number,
+      ref?: React.RefObject<HTMLElement>
+    ) => {
       const callback = () => {
-        if (dragObject.type === "drop")
-          animateAndRemoveClone(delay!, ref)
+        if (dragObject.type === "drop") animateAndRemoveClone(delay!, ref);
         internalState.current.dragState.current = DragReducer(
           internalState.current.dragState.current,
           dragObject
         );
-        // console.table(internalState.current.dragState.current)
         reRender();
-      }
+      };
       if (dragObject.type === "drop" && internalState.current.timeout) {
-        RunAfterTimer.add(callback)
+        RunAfterTimer.add(callback);
       } else {
         callback();
       }
@@ -135,6 +138,5 @@ export default function useAnimationSync<El>(options: DragOptions<El>) {
     },
     dragState: internalState.current.dragState,
     dragDispatch,
-    reRender
   };
 }

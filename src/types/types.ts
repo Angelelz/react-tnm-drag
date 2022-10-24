@@ -196,12 +196,6 @@ export type DragProps<R extends HTMLElement> = {
   ref: React.RefObject<R>;
 }
 
-// export type UseDrag<El> = {
-//   dragState: DragState<DragOptions<El>>;
-//   dragDispatch: React.Dispatch<DispatchDragObject<DragOptions<El>>>;
-//   useDragElement: DragElementHook;
-// }
-
 export type UseDrag = ReturnType<typeof useAnotherDrag>
 
 export type ArrayCallback<El> = (elementArray: El[]) => void
